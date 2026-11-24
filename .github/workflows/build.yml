@@ -1,0 +1,49 @@
+
+name: Gerar APK FUTSIM Manager
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Instalar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Instalar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar ferramentas Android
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extrair projeto
+        run: |
+          unzip -q FUTSIM_Manager_Projeto_Android.zip -d projeto
+          find projeto -name settings.gradle
+
+      - name: Compilar APK
+        run: |
+          DIR=$(dirname "$(find projeto -name settings.gradle | head -n 1)")
+          cd "$DIR"
+          gradle assembleDebug
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FUTSIM-Manager-APK
+          path: projeto/**/build/outputs/apk/debug/*.apk
+          
